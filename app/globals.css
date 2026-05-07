@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-serif: "Cormorant Garamond";
+  --font-sans: "Inter";
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #07130f;
+  color: #171814;
+}
+
+.marble {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(22, 55, 46, 0.12), transparent 28%),
+    radial-gradient(circle at 84% 8%, rgba(180, 137, 72, 0.12), transparent 25%),
+    linear-gradient(120deg, #fffdf8, #f3eee5 52%, #faf7ef);
+}
+
+.velora-input {
+  width: 100%;
+  border-radius: 4px;
+  border: 1px solid rgba(7, 19, 15, 0.18);
+  background: rgba(255, 252, 246, 0.82);
+  padding: 0.85rem 0.9rem;
+  font-size: 0.875rem;
+  color: #07130f;
+  outline: none;
+}
+
+.velora-input:focus {
+  border-color: #b48948;
+  box-shadow: 0 0 0 3px rgba(180, 137, 72, 0.15);
+}
+
+.velora-label {
+  margin-bottom: 0.45rem;
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(7, 19, 15, 0.72);
+}
+
+.velora-button {
+  border-radius: 4px;
+  background: linear-gradient(135deg, #16372e, #07130f);
+  padding: 0.9rem 1.25rem;
+  color: #fffaf0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.gold-button {
+  border-radius: 3px;
+  background: #b48948;
+  color: #fffaf0;
+  padding: 0.95rem 1.25rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.admin-panel {
+  border-radius: 6px;
+  border: 1px solid rgba(7, 19, 15, 0.08);
+  background: rgba(255, 252, 246, 0.92);
+  padding: 1rem;
+}
