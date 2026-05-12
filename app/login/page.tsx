@@ -1,5 +1,6 @@
-import { signIn, signInWithGoogle } from "@/app/actions/auth";
+import { signIn } from "@/app/actions/auth";
 import { AuthShell } from "@/components/AuthShell";
+import { SocialAuthButtons } from "@/components/SocialAuthButtons";
 import { Eye } from "lucide-react";
 import Link from "next/link";
 
@@ -12,13 +13,13 @@ export default async function Login({
 
   return (
     <AuthShell
-      title="Welcome back"
-      subtitle="Sign in to continue to your account"
+      title="로그인"
+      subtitle="맨업 ManUp에 오신 것을 환영합니다."
       footer={
         <>
-          Don&apos;t have an account?{" "}
+          계정이 없으신가요?{" "}
           <Link href="/signup" className="text-gold">
-            Create one
+            회원가입
           </Link>
         </>
       }
@@ -26,36 +27,25 @@ export default async function Login({
       <form action={signIn} className="space-y-5">
         {params.message ? <p className="rounded bg-burgundy/10 p-3 text-sm text-burgundy">{params.message}</p> : null}
         <div>
-          <label className="velora-label">Email address</label>
-          <input className="velora-input" type="email" name="email" required placeholder="hello@velora.com" />
+          <label className="velora-label">이메일</label>
+          <input className="velora-input" type="email" name="email" required placeholder="이메일을 입력하세요" />
         </div>
         <div>
-          <label className="velora-label">Password</label>
+          <label className="velora-label">비밀번호</label>
           <div className="relative">
-            <input className="velora-input pr-10" type="password" name="password" required placeholder="••••••••••" />
+            <input className="velora-input pr-10" type="password" name="password" required placeholder="비밀번호를 입력하세요" />
             <Eye className="absolute right-3 top-3.5 text-ink/45" size={16} />
           </div>
         </div>
         <div className="flex items-center justify-between text-xs text-ink/65">
           <label className="flex items-center gap-2">
-            <input type="checkbox" defaultChecked className="accent-moss" /> Remember me
+            <input type="checkbox" defaultChecked className="accent-moss" /> 로그인 상태 유지
           </label>
-          <span>Forgot password?</span>
+          <span>비밀번호 찾기</span>
         </div>
-        <button className="velora-button w-full">Sign In</button>
+        <button className="velora-button w-full">로그인</button>
       </form>
-      <div className="mt-8 grid grid-cols-3 gap-3">
-        <form action={signInWithGoogle}>
-          <button className="w-full rounded border border-ink/10 bg-white/60 py-3 text-xs text-ink/80 transition hover:border-gold hover:bg-white">
-            G
-          </button>
-        </form>
-        {["Apple", "MS"].map((item) => (
-          <button key={item} className="rounded border border-ink/10 bg-white/30 py-3 text-xs text-ink/35" disabled>
-            {item}
-          </button>
-        ))}
-      </div>
+      <SocialAuthButtons returnTo="/login" />
     </AuthShell>
   );
 }

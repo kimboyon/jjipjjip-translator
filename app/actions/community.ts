@@ -1,7 +1,8 @@
 "use server";
 
 import type { UploadedAttachment } from "@/lib/types";
-import { createClient } from "@/lib/supabase/server";
+import { isAdminEmail } from "@/lib/env";
+import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -20,7 +21,7 @@ async function requireUser() {
   const {
     data: { user }
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login?message=Please sign in first.");
+  if (!user) redirect("/login?message=로그인이 필요합니다.");
   return { supabase, user };
 }
 
@@ -28,7 +29,7 @@ export async function createPost(formData: FormData) {
   const { supabase, user } = await requireUser();
   const title = String(formData.get("title") ?? "").trim();
   const content = String(formData.get("content") ?? "").trim();
-  const category = String(formData.get("category") ?? "Care & Materials");
+  const category = String(formData.get("category") ?? "질문");
   const uploads = parseUploads(formData.get("attachments"));
 
   const { data: post, error } = await supabase
@@ -37,7 +38,7 @@ export async function createPost(formData: FormData) {
     .select("id")
     .single();
 
-  if (error || !post) redirect(`/community/new?message=${encodeURIComponent(error?.message ?? "Post failed")}`);
+  if (error || !post) redirect(`/community/new?message=${encodeURIComponent(error?.message ?? "글 작성에 실패했습니다.")}`);
 
   if (uploads.length) {
     await supabase.from("attachments").insert(
@@ -61,7 +62,7 @@ export async function updatePost(postId: string, formData: FormData) {
     .update({
       title: String(formData.get("title") ?? "").trim(),
       content: String(formData.get("content") ?? "").trim(),
-      category: String(formData.get("category") ?? "Care & Materials")
+      category: String(formData.get("category") ?? "질문")
     })
     .eq("id", postId)
     .eq("author_id", user.id);
@@ -84,7 +85,12 @@ export async function updatePost(postId: string, formData: FormData) {
 
 export async function deletePost(postId: string) {
   const { supabase, user } = await requireUser();
-  await supabase.from("posts").delete().eq("id", postId).eq("author_id", user.id);
+  if (isAdminEmail(user.email)) {
+    const admin = createAdminClient();
+    await admin.from("posts").delete().eq("id", postId);
+  } else {
+    await supabase.from("posts").delete().eq("id", postId).eq("author_id", user.id);
+  }
   revalidatePath("/community");
   redirect("/community");
 }

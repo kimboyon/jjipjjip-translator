@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/browser";
 import { CloudUpload, Loader2, Paperclip } from "lucide-react";
 import { useMemo, useState } from "react";
 
-const categories = ["Care & Materials", "Styling", "Orders & Shipping", "Products", "Events"];
+const categories = ["질문", "후기", "자유", "공지", "상담"];
 
 export function PostEditor({
   action,
@@ -62,7 +62,7 @@ export function PostEditor({
           minLength={2}
           defaultValue={post?.title}
           className="velora-input"
-          placeholder="Will the Maia bag restock?"
+          placeholder="멘토링 프로그램 일정 관련 문의드립니다."
         />
       </div>
       <div>
@@ -81,13 +81,13 @@ export function PostEditor({
           rows={8}
           defaultValue={post?.content}
           className="velora-input resize-none"
-          placeholder="Share a question, announcement, styling note, or support request."
+          placeholder="내용을 입력하세요."
         />
       </div>
       <label className="flex cursor-pointer flex-col items-center justify-center rounded-md border border-dashed border-ink/25 bg-paper px-5 py-8 text-center text-sm text-ink/65">
         {uploading ? <Loader2 className="mb-3 animate-spin text-gold" /> : <CloudUpload className="mb-3 text-gold" />}
-        Drag & drop images or files here
-        <span className="mt-1 text-xs">JPG, PNG, PDF up to 10MB</span>
+        파일을 드래그하거나 클릭해서 업로드하세요
+        <span className="mt-1 text-xs">JPG, PNG, WebP, PDF, TXT 최대 10MB</span>
         <input className="sr-only" type="file" multiple onChange={(event) => onFiles(event.target.files)} />
       </label>
       {uploads.length ? (
@@ -99,7 +99,7 @@ export function PostEditor({
           ))}
         </div>
       ) : null}
-      <button className="velora-button w-full">Publish Post</button>
+      <button className="velora-button w-full">{post ? "수정 완료" : "등록"}</button>
     </form>
   );
 }

@@ -23,31 +23,31 @@ export function AdminCharts({
     <div className="grid gap-4 lg:grid-cols-2">
       <section className="admin-panel">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-ink">Visitor Flow</h2>
-          <span className="text-xs text-ink/50">Last 7 days</span>
+          <h2 className="text-sm font-semibold text-ink">활성 사용자 추이</h2>
+          <span className="text-xs text-ink/50">최근 7일</span>
         </div>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={views}>
               <defs>
                 <linearGradient id="views" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="5%" stopColor="#541f22" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="#541f22" stopOpacity={0.02} />
+                  <stop offset="5%" stopColor="#b48948" stopOpacity={0.42} />
+                  <stop offset="95%" stopColor="#12372e" stopOpacity={0.04} />
                 </linearGradient>
               </defs>
               <CartesianGrid stroke="#eee8df" vertical={false} />
               <XAxis dataKey="day" tickLine={false} axisLine={false} fontSize={11} />
               <YAxis tickLine={false} axisLine={false} fontSize={11} />
               <Tooltip />
-              <Area type="monotone" dataKey="count" stroke="#541f22" fill="url(#views)" strokeWidth={2} />
+              <Area type="monotone" dataKey="count" stroke="#b48948" fill="url(#views)" strokeWidth={2} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
       </section>
       <section className="admin-panel">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-ink">Posts by Category</h2>
-          <span className="text-xs text-ink/50">Community</span>
+          <h2 className="text-sm font-semibold text-ink">게시글 카테고리</h2>
+          <span className="text-xs text-ink/50">커뮤니티</span>
         </div>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
@@ -56,7 +56,7 @@ export function AdminCharts({
               <XAxis dataKey="category" tickLine={false} axisLine={false} fontSize={11} />
               <YAxis tickLine={false} axisLine={false} fontSize={11} />
               <Tooltip />
-              <Bar dataKey="count" fill="#7d3a3c" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="count" fill="#12372e" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
