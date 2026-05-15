@@ -11,9 +11,15 @@ const oauthProviders = {
   naver: "custom:naver"
 } satisfies Record<string, Provider>;
 
+function getSafeNext(formData: FormData, fallback = "/") {
+  const next = String(formData.get("next") ?? fallback);
+  return next.startsWith("/") && !next.startsWith("//") ? next : fallback;
+}
+
 export async function signIn(formData: FormData) {
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
+  const next = getSafeNext(formData);
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
@@ -57,12 +63,12 @@ export async function signIn(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
-  redirect("/community");
+  redirect(next);
 }
 
 export async function signInWithOAuth(formData: FormData) {
   const providerKey = String(formData.get("provider") ?? "");
-  const next = String(formData.get("next") ?? "/community");
+  const next = getSafeNext(formData);
   const returnTo = String(formData.get("returnTo") ?? "/login");
   const provider = oauthProviders[providerKey as keyof typeof oauthProviders];
 
@@ -89,6 +95,7 @@ export async function signUp(formData: FormData) {
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
   const displayName = String(formData.get("display_name") ?? "");
+  const next = getSafeNext(formData);
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -108,7 +115,7 @@ export async function signUp(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
-  redirect("/community");
+  redirect(next);
 }
 
 export async function signOut() {

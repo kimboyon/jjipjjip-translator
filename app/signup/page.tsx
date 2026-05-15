@@ -6,18 +6,19 @@ import Link from "next/link";
 export default async function Signup({
   searchParams
 }: {
-  searchParams: Promise<{ message?: string }>;
+  searchParams: Promise<{ message?: string; next?: string }>;
 }) {
   const params = await searchParams;
+  const next = params.next?.startsWith("/") && !params.next.startsWith("//") ? params.next : "/";
 
   return (
     <AuthShell
       title="회원가입"
-      subtitle="맨업 커뮤니티와 성장 리포트를 시작하세요."
+      subtitle="Plus로 전환하고 찝찝한 말을 계속 정리해보세요."
       footer={
         <>
           이미 계정이 있으신가요?{" "}
-          <Link href="/login" className="text-gold">
+          <Link href={`/login?next=${encodeURIComponent(next)}`} className="text-black">
             로그인
           </Link>
         </>
@@ -25,6 +26,7 @@ export default async function Signup({
     >
       <form action={signUp} className="space-y-5">
         {params.message ? <p className="rounded bg-burgundy/10 p-3 text-sm text-burgundy">{params.message}</p> : null}
+        <input type="hidden" name="next" value={next} />
         <div>
           <label className="velora-label">이름</label>
           <input className="velora-input" name="display_name" required placeholder="홍길동" />
@@ -39,7 +41,7 @@ export default async function Signup({
         </div>
         <button className="velora-button w-full">회원가입</button>
       </form>
-      <SocialAuthButtons returnTo="/signup" />
+      <SocialAuthButtons returnTo="/signup" next={next} />
     </AuthShell>
   );
 }

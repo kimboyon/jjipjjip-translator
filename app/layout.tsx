@@ -3,8 +3,8 @@ import { ViewTracker } from "@/components/ViewTracker";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "맨업 ManUp",
-  description: "남성 성장 관리를 위한 커뮤니티, 멘토링, 상담 플랫폼"
+  title: "찝찝함 번역기",
+  description: "보내기 전 찝찝한 말을 감정, 사실, 해석, 대응으로 정리하는 AI 문장 도구"
 };
 
 export default function RootLayout({
