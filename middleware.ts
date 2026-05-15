@@ -1,5 +1,4 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
-import { withAuthTimeout } from "@/lib/auth-timeout";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
@@ -22,7 +21,14 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  await withAuthTimeout(supabase.auth.getUser(), { data: { user: null }, error: null }, 2500);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  await Promise.race([
+    supabase.auth.getUser().catch(() => ({ data: { user: null }, error: null })),
+    new Promise((resolve) => {
+      timer = setTimeout(() => resolve({ data: { user: null }, error: null }), 2500);
+    })
+  ]);
+  if (timer) clearTimeout(timer);
 
   return response;
 }
