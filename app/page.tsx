@@ -7,11 +7,13 @@ import {
   Loader2,
   LockKeyhole,
   MessageSquareText,
+  Mic,
+  MicOff,
   RefreshCw,
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   demoAnalysisResult,
   helpTypes,
@@ -25,6 +27,42 @@ function classNames(...values: Array<string | false | null | undefined>) {
   return values.filter(Boolean).join(" ");
 }
 
+type LocalSpeechRecognitionResult = {
+  isFinal: boolean;
+  [index: number]: { transcript: string };
+};
+
+type LocalSpeechRecognitionEvent = {
+  resultIndex: number;
+  results: {
+    length: number;
+    [index: number]: LocalSpeechRecognitionResult;
+  };
+};
+
+type LocalSpeechRecognitionErrorEvent = {
+  error: string;
+};
+
+type LocalSpeechRecognition = {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  start: () => void;
+  stop: () => void;
+  abort: () => void;
+  onresult: ((event: LocalSpeechRecognitionEvent) => void) | null;
+  onerror: ((event: LocalSpeechRecognitionErrorEvent) => void) | null;
+  onend: (() => void) | null;
+};
+
+type SpeechRecognitionConstructor = new () => LocalSpeechRecognition;
+
+type SpeechEnabledWindow = Window & {
+  SpeechRecognition?: SpeechRecognitionConstructor;
+  webkitSpeechRecognition?: SpeechRecognitionConstructor;
+};
+
 export default function Home() {
   const [mode, setMode] = useState<(typeof modes)[number]>("답장 온도");
   const [relationship, setRelationship] = useState<(typeof relationships)[number]>("상사");
@@ -36,9 +74,93 @@ export default function Home() {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [result, setResult] = useState<AnalysisResult>(demoAnalysisResult);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isListening, setIsListening] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(false);
+  const [speechMessage, setSpeechMessage] = useState("");
+  const recognitionRef = useRef<LocalSpeechRecognition | null>(null);
+  const speechBaseTextRef = useRef("");
+  const shouldListenRef = useRef(false);
 
   const remainingUses = useMemo(() => (hasResult ? 9 : 10), [hasResult]);
   const canAnalyze = situation.trim().length > 0 && !isGenerating;
+
+  useEffect(() => {
+    const speechWindow = window as SpeechEnabledWindow;
+    const Recognition = speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition;
+
+    if (!Recognition) {
+      setSpeechSupported(false);
+      setSpeechMessage("이 브라우저는 음성 입력을 지원하지 않습니다. Chrome 또는 Edge에서 이용해주세요.");
+      return;
+    }
+
+    const recognition = new Recognition();
+    recognition.lang = "ko-KR";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    recognition.onresult = (event) => {
+      let finalTranscript = "";
+      let interimTranscript = "";
+
+      for (let index = event.resultIndex; index < event.results.length; index += 1) {
+        const transcript = event.results[index][0]?.transcript || "";
+        if (event.results[index].isFinal) {
+          finalTranscript += transcript;
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+
+      const prefix = speechBaseTextRef.current ? `${speechBaseTextRef.current} ` : "";
+
+      if (finalTranscript.trim()) {
+        const nextText = `${prefix}${finalTranscript.trim()}`.trim();
+        speechBaseTextRef.current = nextText;
+        setSituation(nextText);
+        setHasResult(false);
+        setErrorMessage("");
+        setSpeechMessage("음성이 입력되었습니다. 계속 말하거나 중지할 수 있어요.");
+        return;
+      }
+
+      if (interimTranscript.trim()) {
+        setSituation(`${prefix}${interimTranscript.trim()}`.trim());
+        setHasResult(false);
+        setErrorMessage("");
+      }
+    };
+
+    recognition.onerror = (event) => {
+      shouldListenRef.current = false;
+      setIsListening(false);
+
+      const messageByError: Record<string, string> = {
+        "not-allowed": "마이크 권한이 거부되었습니다. 브라우저 주소창 권한 설정에서 마이크를 허용해주세요.",
+        "service-not-allowed": "브라우저가 음성 인식 서비스를 허용하지 않았습니다. 마이크 권한과 브라우저 설정을 확인해주세요.",
+        "no-speech": "음성이 감지되지 않았습니다. 조금 더 가까이 말하거나 다시 시작해주세요.",
+        "audio-capture": "마이크를 찾을 수 없습니다. 입력 장치 연결 상태를 확인해주세요.",
+        network: "음성 인식 네트워크 연결에 문제가 있습니다. 잠시 후 다시 시도해주세요.",
+      };
+
+      setSpeechMessage(messageByError[event.error] || "음성 입력 중 문제가 생겼습니다. 다시 시도해주세요.");
+    };
+
+    recognition.onend = () => {
+      if (!shouldListenRef.current) {
+        setIsListening(false);
+      }
+    };
+
+    recognitionRef.current = recognition;
+    setSpeechSupported(true);
+    setSpeechMessage("");
+
+    return () => {
+      shouldListenRef.current = false;
+      recognition.abort();
+    };
+  }, []);
 
   async function handleAnalyze() {
     if (!situation.trim()) return;
@@ -73,6 +195,35 @@ export default function Home() {
       window.setTimeout(() => setCopiedIndex(null), 1200);
     } catch {
       setCopiedIndex(null);
+    }
+  }
+
+  function handleSpeechToggle() {
+    const recognition = recognitionRef.current;
+
+    if (!speechSupported || !recognition) {
+      setSpeechMessage("이 브라우저는 음성 입력을 지원하지 않습니다. Chrome 또는 Edge에서 이용해주세요.");
+      return;
+    }
+
+    if (isListening) {
+      shouldListenRef.current = false;
+      recognition.stop();
+      setIsListening(false);
+      setSpeechMessage("음성 입력을 중지했습니다.");
+      return;
+    }
+
+    speechBaseTextRef.current = situation.trim();
+    shouldListenRef.current = true;
+    setSpeechMessage("브라우저 권한 요청이 뜨면 마이크 사용을 허용해주세요. 듣는 중에는 말한 내용이 입력창에 들어갑니다.");
+
+    try {
+      recognition.start();
+      setIsListening(true);
+    } catch {
+      setIsListening(true);
+      setSpeechMessage("이미 음성 입력이 시작되어 있습니다. 말한 내용이 입력창에 들어갑니다.");
     }
   }
 
@@ -142,9 +293,26 @@ export default function Home() {
             </div>
 
             <label className="mt-5 block">
-              <span className="flex items-center justify-between text-xs font-extrabold text-slate-700">
-                상황 또는 보내려는 문장
-                <span className="font-bold text-slate-400">결과 생성 후 폐기</span>
+              <span className="flex flex-wrap items-center justify-between gap-2 text-xs font-extrabold text-slate-700">
+                <span>상황 또는 보내려는 문장</span>
+                <span className="flex items-center gap-2">
+                  <span className="font-bold text-slate-400">결과 생성 후 폐기</span>
+                  <button
+                    type="button"
+                    onClick={handleSpeechToggle}
+                    disabled={!speechSupported}
+                    className={classNames(
+                      "inline-flex h-8 items-center gap-1 rounded-full px-3 text-xs font-black transition",
+                      isListening
+                        ? "bg-orange-500 text-white"
+                        : "bg-slate-950 text-white hover:bg-indigo-700",
+                      !speechSupported && "cursor-not-allowed bg-slate-300 text-slate-500 hover:bg-slate-300",
+                    )}
+                  >
+                    {isListening ? <MicOff size={13} /> : <Mic size={13} />}
+                    {isListening ? "듣는 중" : "음성 입력"}
+                  </button>
+                </span>
               </span>
               <textarea
                 value={situation}
@@ -157,6 +325,18 @@ export default function Home() {
                 placeholder={'예: 상사가 "요즘 MZ들은 책임감이 약한 것 같아"라고 했는데 나한테 하는 말 같아서 기분이 나빴다.'}
               />
             </label>
+            {speechMessage ? (
+              <p
+                className={classNames(
+                  "mt-2 rounded-lg border px-3 py-2 text-xs font-bold leading-5",
+                  isListening
+                    ? "border-orange-200 bg-orange-50 text-orange-800"
+                    : "border-slate-200 bg-slate-50 text-slate-600",
+                )}
+              >
+                {speechMessage}
+              </p>
+            ) : null}
 
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
               <OptionSelect label="관계" value={relationship} options={relationships} onChange={setRelationship} />
