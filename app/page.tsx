@@ -12,34 +12,14 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useMemo, useState } from "react";
-
-const modes = ["답장 온도", "선 넘음", "세대차이", "거리두기", "관계 유지", "피로도"] as const;
-const relationships = ["상사", "동료", "후배", "친구", "모임", "가족", "기타"] as const;
-const helpTypes = ["말투 점검", "답장", "감정 해석", "거리두기", "상대 의도 분석", "직장용 표현"] as const;
-const tones = ["직장용", "부드럽게", "단호하게", "가볍게", "거리두기"] as const;
-
-const sampleResult = {
-  summary: "세대나 태도에 대한 일반화가 개인 평가처럼 느껴져 불편함이 남은 상황입니다.",
-  separation: [
-    { label: "감정", body: "억울함, 경계심, 평가받는 느낌" },
-    { label: "사실", body: "상대는 MZ와 책임감에 대한 일반화 표현을 사용했습니다." },
-    { label: "해석", body: "나를 겨냥했을 수도 있지만, 특정인을 지목하지 않은 푸념일 수도 있습니다." },
-  ],
-  possibleMeanings: [
-    "조직 안에서 느낀 답답함을 세대 표현으로 뭉뚱그렸을 가능성",
-    "특정 업무 상황을 말하려다 표현이 거칠어진 가능성",
-    "실제로 반복된다면 세대 프레임으로 평가하는 패턴일 가능성",
-  ],
-  responseLevel: "낮게 시작",
-  toneRisk: "조금 차가움",
-  replies: [
-    "그렇게 느끼실 수도 있을 것 같아요. 다만 저는 이 건은 책임지고 마무리하려고 일정 정리해두었습니다.",
-    "말씀 주신 부분 참고하겠습니다. 저는 이번 건은 업무 기준에 맞춰 진행 상황을 공유드리겠습니다.",
-    "세대 이야기보다는 이번 업무에서 필요한 기준을 확인하고 맞춰보겠습니다.",
-  ],
-  avoid: ["요즘 윗세대도 똑같아요", "그건 편견 아닌가요?", "저한테 하시는 말씀이세요?"],
-  nextAction: "감정 반박보다 업무 기준과 일정으로 대화를 되돌리는 편이 안전합니다.",
-};
+import {
+  demoAnalysisResult,
+  helpTypes,
+  modes,
+  relationships,
+  tones,
+  type AnalysisResult,
+} from "@/lib/jjipjjip-analysis";
 
 function classNames(...values: Array<string | false | null | undefined>) {
   return values.filter(Boolean).join(" ");
@@ -54,17 +34,36 @@ export default function Home() {
   const [hasResult, setHasResult] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [result, setResult] = useState<AnalysisResult>(demoAnalysisResult);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const remainingUses = useMemo(() => (hasResult ? 9 : 10), [hasResult]);
   const canAnalyze = situation.trim().length > 0 && !isGenerating;
 
-  function handleAnalyze() {
+  async function handleAnalyze() {
     if (!situation.trim()) return;
     setIsGenerating(true);
-    window.setTimeout(() => {
+    setErrorMessage("");
+
+    try {
+      const response = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode, relationship, helpType, tone, situation }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "분석을 생성하지 못했습니다.");
+      }
+
+      setResult(data.result);
       setHasResult(true);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "분석을 생성하지 못했습니다.");
+    } finally {
       setIsGenerating(false);
-    }, 450);
+    }
   }
 
   async function handleCopy(text: string, index: number) {
@@ -152,6 +151,7 @@ export default function Home() {
                 onChange={(event) => {
                   setSituation(event.target.value);
                   if (hasResult) setHasResult(false);
+                  if (errorMessage) setErrorMessage("");
                 }}
                 className="mt-2 min-h-36 w-full resize-none rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
                 placeholder={'예: 상사가 "요즘 MZ들은 책임감이 약한 것 같아"라고 했는데 나한테 하는 말 같아서 기분이 나빴다.'}
@@ -176,6 +176,11 @@ export default function Home() {
               {isGenerating ? <Loader2 className="animate-spin" size={17} /> : <ArrowRight size={17} />}
               10초 멈추고 정리하기
             </button>
+            {errorMessage ? (
+              <p className="mt-3 rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-xs font-bold text-orange-800">
+                {errorMessage}
+              </p>
+            ) : null}
 
             <div className="mt-4 grid gap-2 sm:grid-cols-3">
               {[
@@ -200,6 +205,7 @@ export default function Home() {
             relationship={relationship}
             helpType={helpType}
             tone={tone}
+            result={result}
           />
         </section>
       </div>
@@ -243,6 +249,7 @@ function ResultPanel({
   relationship,
   helpType,
   tone,
+  result,
 }: {
   hasResult: boolean;
   copiedIndex: number | null;
@@ -250,6 +257,7 @@ function ResultPanel({
   relationship: string;
   helpType: string;
   tone: string;
+  result: AnalysisResult;
 }) {
   if (!hasResult) {
     return (
@@ -300,16 +308,21 @@ function ResultPanel({
             {relationship} · {helpType} · {tone}
           </p>
         </div>
-        <span className="rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-black text-indigo-700">진단 아님</span>
+        <div className="flex flex-wrap gap-2">
+          {result.source === "demo" ? (
+            <span className="rounded-full bg-orange-50 px-3 py-1.5 text-xs font-black text-orange-700">데모 결과</span>
+          ) : null}
+          <span className="rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-black text-indigo-700">진단 아님</span>
+        </div>
       </div>
 
       <div className="mt-5 rounded-lg bg-slate-950 p-5 text-white">
         <p className="text-xs font-bold text-slate-300">상황 요약</p>
-        <p className="mt-3 text-base font-extrabold leading-7">{sampleResult.summary}</p>
+        <p className="mt-3 text-base font-extrabold leading-7">{result.summary}</p>
       </div>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
-        {sampleResult.separation.map((item) => (
+        {result.separation.map((item) => (
           <div key={item.label} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
             <p className="text-xs font-black text-indigo-700">{item.label}</p>
             <p className="mt-2 text-sm leading-6 text-slate-700">{item.body}</p>
@@ -323,7 +336,7 @@ function ResultPanel({
           <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-500">3가지</span>
         </div>
         <div className="mt-3 grid gap-2">
-          {sampleResult.possibleMeanings.map((meaning) => (
+          {result.possibleMeanings.map((meaning) => (
             <p key={meaning} className="rounded-lg bg-slate-50 px-3 py-2 text-sm leading-6 text-slate-700">
               {meaning}
             </p>
@@ -332,8 +345,8 @@ function ResultPanel({
       </section>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <StatusCard title="대응 필요도" value={sampleResult.responseLevel} tone="orange" />
-        <StatusCard title="말투 리스크" value={sampleResult.toneRisk} tone="indigo" />
+        <StatusCard title="대응 필요도" value={result.responseLevel} tone="orange" />
+        <StatusCard title="말투 리스크" value={result.toneRisk} tone="indigo" />
       </div>
 
       <section className="mt-4 rounded-lg border border-slate-200 p-4">
@@ -342,7 +355,7 @@ function ResultPanel({
           <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-500">문장별 복사</span>
         </div>
         <div className="mt-3 grid gap-2">
-          {sampleResult.replies.map((reply, index) => (
+          {result.replies.map((reply, index) => (
             <div key={reply} className="grid gap-2 rounded-lg bg-slate-50 p-3 sm:grid-cols-[1fr_auto] sm:items-center">
               <p className="text-sm leading-6 text-slate-800">{reply}</p>
               <button
@@ -361,7 +374,7 @@ function ResultPanel({
         <div className="rounded-lg border border-orange-200 bg-orange-50 p-4">
           <h2 className="text-sm font-black text-orange-800">피해야 할 표현</h2>
           <div className="mt-3 flex flex-wrap gap-2">
-            {sampleResult.avoid.map((item) => (
+            {result.avoid.map((item) => (
               <span key={item} className="rounded-full bg-white px-3 py-1.5 text-xs font-bold text-orange-700 ring-1 ring-orange-200">
                 {item}
               </span>
@@ -370,9 +383,13 @@ function ResultPanel({
         </div>
         <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-4">
           <h2 className="text-sm font-black text-indigo-900">다음 행동 제안</h2>
-          <p className="mt-2 text-sm leading-6 text-indigo-900">{sampleResult.nextAction}</p>
+          <p className="mt-2 text-sm leading-6 text-indigo-900">{result.nextAction}</p>
         </div>
       </section>
+
+      <p className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-500">
+        {result.safetyNote}
+      </p>
 
       <div className="mt-4 flex flex-wrap gap-2">
         {["조금 부드럽게", "더 단호하게", "직장용으로"].map((action) => (
