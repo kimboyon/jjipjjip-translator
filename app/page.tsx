@@ -2,7 +2,10 @@
 
 import {
   ArrowRight,
+  ArrowDown,
+  Brain,
   CalendarClock,
+  CheckCircle2,
   Clipboard,
   Copy,
   CreditCard,
@@ -266,27 +269,33 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#f6f4ef] text-[#171717]">
-      <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-4 sm:px-6 lg:px-8">
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-black/10 py-5">
-          <div>
-            <p className="text-sm font-black tracking-normal text-black">찝찝함 번역기</p>
-            <p className="mt-1 text-xs text-black/50">Save what keeps bothering you. Then translate it calmly.</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs font-bold text-black/70">
-              <CalendarClock size={13} /> {daysLeft}일 남음
-            </span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-black px-3 py-1.5 text-xs font-bold text-white">
-              <LockKeyhole size={13} /> 저장 안 함
-            </span>
-            <span className="inline-flex items-center gap-1 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs font-bold text-black/70">
-              {remainingUses}회 남음
-            </span>
-          </div>
-        </header>
+      <BrandHero />
 
-        <section className="grid flex-1 gap-5 py-5 lg:grid-cols-[0.92fr_1.08fr] lg:items-stretch">
-          <div className="flex flex-col rounded-[6px] border border-black/10 bg-white p-4 shadow-[0_18px_70px_rgba(0,0,0,0.06)] sm:p-5 lg:p-7">
+      <section id="translator" className="border-y border-black/10 bg-[#f6f4ef]">
+        <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+          <header className="mb-5 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-[#b98d4d]">Translator Studio</p>
+              <h2 className="mt-2 text-3xl font-black leading-tight text-black sm:text-4xl">찝찝한 말, 보내기 전에 정리하기</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-black/55">
+                지금부터는 실제 도구 화면입니다. 상황을 입력하면 감정, 사실, 해석, 대응을 나눠서 차분한 문장으로 바꿔줍니다.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs font-bold text-black/70">
+                <CalendarClock size={13} /> {daysLeft}일 남음
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-black px-3 py-1.5 text-xs font-bold text-white">
+                <LockKeyhole size={13} /> 저장 안 함
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs font-bold text-black/70">
+                {remainingUses}회 남음
+              </span>
+            </div>
+          </header>
+
+          <div className="grid gap-5 lg:grid-cols-[0.92fr_1.08fr] lg:items-stretch">
+            <div className="flex flex-col rounded-[6px] border border-black/10 bg-white p-4 shadow-[0_18px_70px_rgba(0,0,0,0.06)] sm:p-5 lg:p-7">
             <div className="rounded-[6px] border border-black/10 bg-[#fff7df] p-3">
               <div className="flex items-center gap-2 text-xs font-black text-black">
                 <Sparkles size={14} /> 보내기 전 10초 멈춤
@@ -413,23 +422,175 @@ export default function Home() {
                 </div>
               ))}
             </div>
+            </div>
+
+            <div className="grid gap-4">
+              {trialLocked ? <UpgradePanel daysLeft={daysLeft} remainingUses={remainingUses} /> : null}
+              <ResultPanel
+                hasResult={hasResult}
+                copiedIndex={copiedIndex}
+                onCopy={handleCopy}
+                relationship={relationship}
+                helpType={helpType}
+                tone={tone}
+                result={result}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <SiteFooter />
+    </main>
+  );
+}
+
+function BrandHero() {
+  return (
+    <section className="relative min-h-screen overflow-hidden bg-[#07130f] text-white">
+      <div className="absolute inset-0 opacity-70 [background:radial-gradient(circle_at_72%_30%,rgba(185,141,77,0.26),transparent_22%),linear-gradient(90deg,rgba(185,141,77,0.08)_1px,transparent_1px),linear-gradient(rgba(185,141,77,0.08)_1px,transparent_1px)] [background-size:auto,72px_72px,72px_72px]" />
+      <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-5 sm:px-6 lg:px-8">
+        <nav className="flex items-center justify-between border-b border-[#b98d4d]/30 py-4">
+          <Link href="/" className="text-lg font-black tracking-normal text-[#f4c46d]">
+            찝찝함 번역기
+          </Link>
+          <div className="hidden items-center gap-8 text-xs font-bold text-white/70 md:flex">
+            <a href="#translator" className="transition hover:text-[#f4c46d]">번역기</a>
+            <a href="#footer" className="transition hover:text-[#f4c46d]">브랜드 정보</a>
+            <Link href="/login?next=/" className="transition hover:text-[#f4c46d]">로그인</Link>
+          </div>
+          <a
+            href="#translator"
+            className="inline-flex h-10 items-center justify-center rounded-[4px] bg-[#d5a24f] px-4 text-xs font-black text-[#07130f] shadow-[0_10px_30px_rgba(213,162,79,0.22)] transition hover:bg-[#f0c36b]"
+          >
+            시작하기
+          </a>
+        </nav>
+
+        <div className="grid flex-1 items-center gap-10 py-12 lg:grid-cols-[0.92fr_1.08fr]">
+          <div>
+            <p className="inline-flex items-center gap-2 border border-[#d5a24f]/35 px-3 py-1.5 text-xs font-black text-[#f4c46d]">
+              <Sparkles size={14} /> 10초 멈추고 정리하는 말 도구
+            </p>
+            <h1 className="mt-7 max-w-3xl text-5xl font-black leading-[0.94] tracking-normal text-white sm:text-7xl">
+              찝찝한 말의
+              <br />
+              온도를 번역하다
+            </h1>
+            <p className="mt-6 max-w-xl text-base leading-8 text-white/72">
+              관계를 망치고 싶진 않지만 그냥 넘기기도 어려운 말들. 찝찝함 번역기는 감정과 사실을 분리하고, 보내도 되는 문장을 고급스럽게 정리합니다.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <a
+                href="#translator"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-[4px] bg-[#d5a24f] px-6 text-sm font-black text-[#07130f] transition hover:bg-[#f0c36b]"
+              >
+                바로 정리하기 <ArrowRight size={16} />
+              </a>
+              <Link
+                href="/signup?next=/"
+                className="inline-flex min-h-12 items-center justify-center rounded-[4px] border border-[#d5a24f]/45 px-6 text-sm font-black text-white transition hover:border-[#f0c36b] hover:text-[#f0c36b]"
+              >
+                Plus 가입
+              </Link>
+            </div>
           </div>
 
-          <div className="grid gap-4">
-            {trialLocked ? <UpgradePanel daysLeft={daysLeft} remainingUses={remainingUses} /> : null}
-            <ResultPanel
-              hasResult={hasResult}
-              copiedIndex={copiedIndex}
-              onCopy={handleCopy}
-              relationship={relationship}
-              helpType={helpType}
-              tone={tone}
-              result={result}
-            />
-          </div>
-        </section>
+          <HeroVisual />
+        </div>
+
+        <a href="#translator" className="mb-2 inline-flex w-fit items-center gap-2 text-xs font-bold text-white/45 transition hover:text-[#f4c46d]">
+          아래로 내려 번역기 사용하기 <ArrowDown size={14} />
+        </a>
       </div>
-    </main>
+    </section>
+  );
+}
+
+function HeroVisual() {
+  return (
+    <div className="relative min-h-[420px] overflow-hidden rounded-[8px] border border-[#d5a24f]/30 bg-[#07130f]/70 p-5 shadow-[0_30px_80px_rgba(0,0,0,0.36)]">
+      <div className="absolute inset-0 [background:radial-gradient(circle_at_68%_36%,rgba(244,196,109,0.28),transparent_18%),radial-gradient(circle_at_32%_70%,rgba(255,255,255,0.08),transparent_20%)]" />
+      <div className="relative grid h-full gap-4 lg:grid-cols-[0.78fr_1fr]">
+        <div className="flex flex-col justify-between rounded-[6px] border border-white/10 bg-white/[0.04] p-5">
+          <div>
+            <Brain className="text-[#f4c46d]" size={34} />
+            <p className="mt-5 text-xs font-bold text-white/45">Before sending</p>
+            <p className="mt-2 text-2xl font-black leading-tight">기분은 나쁜데, 뭐라고 말해야 할지 모르겠을 때</p>
+          </div>
+          <div className="mt-8 space-y-3">
+            {["감정 분리", "사실 확인", "보낼 문장 3개"].map((item) => (
+              <div key={item} className="flex items-center gap-2 text-sm font-bold text-white/70">
+                <CheckCircle2 size={16} className="text-[#f4c46d]" /> {item}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="rounded-[6px] border border-[#d5a24f]/25 bg-[#f6f4ef] p-5 text-black">
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-black/40">Translated Result</p>
+          <div className="mt-4 rounded-[6px] bg-black p-4 text-white">
+            <p className="text-xs font-bold text-white/45">상황 요약</p>
+            <p className="mt-3 text-lg font-black leading-7">상대의 말을 단정하지 않고, 내가 느낀 불편함을 확인 가능한 표현으로 바꿉니다.</p>
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            {["감정", "사실", "해석"].map((item) => (
+              <div key={item} className="rounded-[6px] border border-black/10 bg-white p-3 text-sm font-black">
+                {item}
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 rounded-[6px] border border-black/10 bg-white p-4">
+            <p className="text-xs font-black text-black/45">보내도 되는 문장</p>
+            <p className="mt-2 text-sm font-bold leading-6 text-black/70">
+              “그 표현을 들었을 때 제가 조금 부담스럽게 느꼈어요. 어떤 의미였는지 확인해도 될까요?”
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SiteFooter() {
+  return (
+    <footer id="footer" className="bg-[#07130f] text-white">
+      <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1.1fr_0.9fr_0.9fr] lg:px-8">
+        <div>
+          <p className="text-lg font-black text-[#f4c46d]">찝찝함 번역기</p>
+          <p className="mt-3 max-w-sm text-sm leading-6 text-white/55">
+            보내기 전 감정과 사실을 분리하고, 관계를 덜 해치면서도 나를 지키는 문장을 제안합니다.
+          </p>
+        </div>
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-white/35">Company</p>
+          <dl className="mt-4 space-y-2 text-xs leading-5 text-white/58">
+            <div className="flex gap-2">
+              <dt className="w-20 text-white/35">브랜드명</dt>
+              <dd>찝찝함 번역기</dd>
+            </div>
+            <div className="flex gap-2">
+              <dt className="w-20 text-white/35">사업자번호</dt>
+              <dd>000-00-00000</dd>
+            </div>
+            <div className="flex gap-2">
+              <dt className="w-20 text-white/35">대표</dt>
+              <dd>홍길동</dd>
+            </div>
+          </dl>
+        </div>
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-white/35">Support</p>
+          <div className="mt-4 space-y-2 text-xs leading-5 text-white/58">
+            <p>고객센터: help@jjipjjip.kr</p>
+            <p>통신판매업 신고번호: 제0000-서울-0000호</p>
+            <p>주소: 서울특별시 강남구 테헤란로 000</p>
+          </div>
+        </div>
+      </div>
+      <div className="border-t border-white/10 py-4 text-center text-[11px] text-white/35">
+        Copyright 2026 Jjipjjip Translator. All rights reserved.
+      </div>
+    </footer>
   );
 }
 
@@ -446,11 +607,11 @@ function OptionSelect<T extends string>({
 }) {
   return (
     <label className="block">
-      <span className="text-xs font-extrabold text-slate-600">{label}</span>
+      <span className="text-xs font-extrabold text-black/60">{label}</span>
       <select
         value={value}
         onChange={(event) => onChange(event.target.value as T)}
-        className="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-slate-900 outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+        className="mt-2 h-11 w-full rounded-[6px] border border-black/10 bg-white px-3 text-sm font-bold text-black outline-none transition focus:border-black focus:ring-4 focus:ring-black/5"
       >
         {options.map((option) => (
           <option key={option} value={option}>
