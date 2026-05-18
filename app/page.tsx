@@ -17,12 +17,13 @@ import {
   Sparkles,
   UserPlus,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   demoAnalysisResult,
   helpTypes,
-  modes,
+  intents,
   relationships,
   tones,
   type AnalysisResult,
@@ -74,9 +75,9 @@ type SpeechEnabledWindow = Window & {
 };
 
 export default function Home() {
-  const [mode, setMode] = useState<(typeof modes)[number]>("답장 온도");
+  const [intent, setIntent] = useState<(typeof intents)[number]>("확인");
   const [relationship, setRelationship] = useState<(typeof relationships)[number]>("상사");
-  const [helpType, setHelpType] = useState<(typeof helpTypes)[number]>("말투 점검");
+  const [helpType, setHelpType] = useState<(typeof helpTypes)[number]>("바로 보낼 답장");
   const [tone, setTone] = useState<(typeof tones)[number]>("직장용");
   const [situation, setSituation] = useState("");
   const [hasResult, setHasResult] = useState(false);
@@ -206,7 +207,7 @@ export default function Home() {
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode, relationship, helpType, tone, situation }),
+        body: JSON.stringify({ intent, relationship, helpType, tone, situation }),
       });
       const data = await response.json();
 
@@ -276,7 +277,7 @@ export default function Home() {
               <p className="text-xs font-black uppercase tracking-[0.18em] text-[#b98d4d]">Translator Studio</p>
               <h2 className="mt-2 text-3xl font-black leading-tight text-black sm:text-4xl">찝찝한 말, 보내기 전에 정리하기</h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-black/55">
-                지금부터는 실제 도구 화면입니다. 상황을 입력하면 감정, 사실, 해석, 대응을 나눠서 차분한 문장으로 바꿔줍니다.
+                계획서 기준의 답장 전용 화면입니다. 말 꺼내기 불편한 상황을 입력하면 감정, 사실, 해석, 대응을 나눠 바로 복사 가능한 문장으로 바꿔줍니다.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -305,7 +306,7 @@ export default function Home() {
 
             <div className="mt-6">
               <p className="inline-flex items-center gap-1 rounded-full border border-black/10 bg-[#f7f7f4] px-3 py-1.5 text-xs font-bold text-black/65">
-                <MessageSquareText size={13} /> {mode}
+                <MessageSquareText size={13} /> {intent} 답장
               </p>
               <h1 className="mt-4 max-w-2xl text-5xl font-black leading-[0.95] tracking-normal text-black sm:text-6xl">
                 지금 보내려는 말,
@@ -319,14 +320,14 @@ export default function Home() {
             </div>
 
             <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {modes.map((item) => (
+              {intents.map((item) => (
                 <button
                   key={item}
                   type="button"
-                  onClick={() => setMode(item)}
+                  onClick={() => setIntent(item)}
                   className={classNames(
                     "min-h-10 rounded-full px-3 text-xs font-extrabold transition",
-                    mode === item
+                    intent === item
                       ? "bg-black text-white shadow-sm"
                       : "bg-[#f3f1eb] text-black/55 hover:bg-black hover:text-white",
                   )}
@@ -446,83 +447,91 @@ export default function Home() {
 
 function BrandHero() {
   return (
-    <section className="min-h-screen bg-white text-black">
-      <header className="flex min-h-24 items-center justify-between border-b border-black/10 px-5 sm:px-8 lg:px-12">
-        <Link href="/" className="text-xl font-black tracking-[0.02em]">
-          찝찝함<span className="font-medium"> 번역기</span>
+    <section className="min-h-screen bg-[#fbfaf8] text-black">
+      <header className="flex min-h-24 items-center justify-between px-5 sm:px-8 lg:px-12">
+        <Link href="/" className="flex items-center gap-3">
+          <span className="relative h-12 w-12 overflow-hidden rounded-full bg-white">
+            <Image src="/emotrans-logo.jpg" alt="EMOTRANS 로고" fill sizes="48px" className="object-cover" priority />
+          </span>
+          <span className="text-xl font-black tracking-normal">찝찝함 번역기</span>
         </Link>
-        <nav className="hidden items-center gap-10 text-sm font-semibold tracking-[0.14em] text-black/70 md:flex">
-          <a href="#translator" className="transition hover:text-black">Translator</a>
-          <a href="#method" className="transition hover:text-black">Method</a>
-          <a href="#footer" className="transition hover:text-black">Brand</a>
-          <Link href="/login?next=/" className="transition hover:text-black">Login</Link>
+        <nav className="hidden items-center gap-10 text-sm font-bold text-black/75 lg:flex">
+          <a href="#method" className="transition hover:text-[#7651e6]">서비스 소개</a>
+          <a href="#translator" className="transition hover:text-[#7651e6]">분석 기능</a>
+          <a href="#method" className="transition hover:text-[#7651e6]">이용 방법</a>
+          <a href="#pricing" className="transition hover:text-[#7651e6]">요금제</a>
+          <a href="#footer" className="transition hover:text-[#7651e6]">FAQ</a>
         </nav>
-        <Link
-          href="/signup?next=/"
-          className="inline-flex h-11 items-center justify-center rounded-[3px] bg-black px-5 text-sm font-black text-white transition hover:bg-[#333]"
-        >
-          시작하기
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link href="/login?next=/" className="hidden text-sm font-bold text-black/70 transition hover:text-black sm:inline">
+            로그인
+          </Link>
+          <Link
+            href="/signup?next=/"
+            className="inline-flex h-12 items-center justify-center rounded-[14px] bg-gradient-to-r from-[#7651e6] to-[#8f63ff] px-5 text-sm font-black text-white shadow-[0_12px_30px_rgba(118,81,230,0.28)] transition hover:scale-[1.01]"
+          >
+            무료로 시작하기
+          </Link>
+        </div>
       </header>
 
-      <div className="relative min-h-[calc(100vh-6rem)] overflow-hidden">
-        <div
-          aria-label="대화를 나누는 사람들의 조용한 업무 공간"
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=2400&q=85')",
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/78 via-black/36 to-black/12" />
-        <div className="relative mx-auto grid min-h-[calc(100vh-6rem)] w-full max-w-7xl items-end gap-8 px-5 py-10 sm:px-8 lg:grid-cols-[1.05fr_0.55fr] lg:px-12">
-          <div className="pb-6 text-white">
-            <p className="text-lg font-medium tracking-[0.22em] text-white/82">Before You Send</p>
-            <h1 className="mt-4 max-w-4xl text-6xl font-black leading-[0.95] tracking-normal sm:text-7xl lg:text-8xl">
-              찝찝한 말의
-              <br />
-              온도를 번역하다
-            </h1>
-            <p className="mt-7 max-w-2xl text-lg font-medium leading-8 text-white/82">
-              관계를 망치고 싶진 않지만 그냥 넘기기도 어려운 말들. 감정과 사실을 분리하고, 보내도 되는 문장으로 다시 정리합니다.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <a
-                href="#translator"
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-[3px] bg-white px-6 text-sm font-black text-black transition hover:bg-[#f4efe6]"
-              >
-                바로 정리하기 <ArrowRight size={16} />
-              </a>
-              <a
-                href="#method"
-                className="inline-flex min-h-12 items-center justify-center rounded-[3px] border border-white/45 px-6 text-sm font-black text-white transition hover:border-white"
-              >
-                서비스 보기
-              </a>
-            </div>
+      <div className="mx-auto grid min-h-[calc(100vh-6rem)] w-full max-w-7xl items-center gap-10 px-5 py-10 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:px-12">
+        <div>
+          <p className="text-base font-black text-[#7651e6]">대화 속 숨은 의도, 감정, 불편함까지</p>
+          <h1 className="mt-8 text-6xl font-black leading-[1.02] tracking-normal sm:text-7xl lg:text-8xl">
+            찝찝함 번역기
+            <span className="mt-6 block text-4xl font-black sm:text-5xl lg:text-6xl">말하지 않아도, 다~ 알아요.</span>
+          </h1>
+          <p className="mt-6 max-w-xl text-base font-medium leading-8 text-black/55">
+            AI 커뮤니케이션 분석으로 대화 속 미묘한 불편함과 숨은 의도를 해석하고, 관계를 덜 해치면서 바로 보낼 수 있는 답장을 제안합니다.
+          </p>
+          <div className="mt-9 flex flex-wrap items-center gap-5">
+            <a
+              href="#translator"
+              className="inline-flex min-h-14 items-center justify-center gap-3 rounded-[12px] bg-black px-7 text-sm font-black text-white transition hover:bg-[#2a2a2a]"
+            >
+              분석 시작하기 <ArrowRight size={18} />
+            </a>
+            <a href="#method" className="inline-flex min-h-12 items-center gap-2 text-sm font-black text-[#7651e6]">
+              서비스 소개 보기 <ArrowRight size={16} />
+            </a>
           </div>
+        </div>
 
-          <div className="mb-6 rounded-[6px] bg-white p-5 shadow-[0_24px_80px_rgba(0,0,0,0.22)]">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-black/40">Start Free</p>
-            <h2 className="mt-3 text-2xl font-black leading-tight">7일 무료로 먼저 써보세요.</h2>
-            <p className="mt-3 text-sm leading-6 text-black/58">
-              무료 10회 체험 후 Plus 전환 메뉴가 열립니다. 구글, 네이버, 카카오톡으로 간편 가입할 수 있어요.
-            </p>
-            <div className="mt-5 grid gap-2 text-sm font-black">
-              <Link href="/signup?next=/" className="rounded-[4px] bg-black px-4 py-3 text-center text-white transition hover:bg-[#333]">
-                회원가입하고 시작
-              </Link>
-              <a href="#translator" className="rounded-[4px] border border-black/12 px-4 py-3 text-center text-black transition hover:border-black">
-                가입 전 둘러보기
-              </a>
-            </div>
+        <div className="relative">
+          <div className="absolute -inset-8 rounded-full bg-[#7651e6]/10 blur-3xl" />
+          <div className="relative overflow-hidden rounded-[28px] border border-black/10 bg-white shadow-[0_28px_90px_rgba(87,70,130,0.14)]">
+            <Image
+              src="/jjipjjip-landing-reference.jpg"
+              alt="찝찝함 번역기 메인 콘텐츠 이미지"
+              width={1792}
+              height={1008}
+              className="h-auto w-full"
+              priority
+            />
           </div>
+        </div>
+
+        <div className="grid gap-4 lg:col-span-2 lg:grid-cols-4">
+          {[
+            ["대화 분석", "문맥, 어조, 단어 선택까지 AI가 정밀 분석해요."],
+            ["숨은 의도 해석", "겉으로 드러나지 않은 상대의 진짜 의도를 가능한 범위로 정리해요."],
+            ["감정 가시화", "감정을 수치와 태그로 보여줘서 직관적으로 이해할 수 있어요."],
+            ["관계 조언", "더 건강한 소통을 위한 맞춤형 답장 팁을 제공해요."],
+          ].map(([title, body]) => (
+            <div key={title} className="rounded-[18px] border border-black/10 bg-white p-6 shadow-[0_12px_40px_rgba(0,0,0,0.04)]">
+              <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-[#7651e6]/10 text-[#7651e6]">
+                <Sparkles size={22} />
+              </div>
+              <h2 className="text-lg font-black">{title}</h2>
+              <p className="mt-3 text-sm leading-6 text-black/58">{body}</p>
+            </div>
+          ))}
         </div>
       </div>
     </section>
   );
 }
-
 function LandingStory() {
   return (
     <section id="method" className="min-h-screen bg-white text-black">

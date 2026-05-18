@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   }
 
   if (!isAnalysisRequest(payload)) {
-    return NextResponse.json({ error: "상황, 관계, 도움, 톤을 확인해주세요." }, { status: 400 });
+    return NextResponse.json({ error: "상황, 답장 의도, 관계, 톤을 확인해주세요." }, { status: 400 });
   }
 
   const apiKey = process.env.WARM_TALENT_API_KEY;
@@ -45,6 +45,9 @@ export async function POST(request: Request) {
 }
 
 async function createAnalysis(input: AnalysisRequest, apiKey: string) {
+  const intent = input.intent || input.mode;
+  const helpType = input.helpType || "바로 보낼 답장";
+
   const response = await fetch(process.env.WARM_TALENT_API_URL || WARM_TALENT_CHAT_URL, {
     method: "POST",
     headers: {
@@ -61,6 +64,7 @@ async function createAnalysis(input: AnalysisRequest, apiKey: string) {
           role: "system",
           content: [
             "너는 '찝찝함 번역기'의 관계 커뮤니케이션 보조 AI다.",
+            "사용자가 거절, 재촉, 사과, 확인, 부탁, 항의 중 어떤 답장 의도를 선택했는지 반영한다.",
             "상대의 속마음을 맞힌다고 말하지 말고, 사용자의 감정과 확인 가능한 사실, 가능한 해석을 분리한다.",
             "치료, 진단, 법률 자문처럼 보이는 표현을 피한다.",
             "사용자의 편만 들지 말고 과해석 가능성을 함께 제시한다.",
@@ -75,9 +79,9 @@ async function createAnalysis(input: AnalysisRequest, apiKey: string) {
         {
           role: "user",
           content: [
-            `분석 모드: ${input.mode}`,
+            `답장 의도: ${intent}`,
             `관계 유형: ${input.relationship}`,
-            `원하는 도움: ${input.helpType}`,
+            `원하는 도움: ${helpType}`,
             `원하는 톤: ${input.tone}`,
             `상황 또는 보내려는 문장: ${input.situation}`,
             "",

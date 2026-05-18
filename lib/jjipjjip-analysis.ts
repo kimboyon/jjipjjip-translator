@@ -1,17 +1,20 @@
-export const modes = ["답장 온도", "선 넘음", "세대차이", "거리두기", "관계 유지", "피로도"] as const;
+export const intents = ["거절", "재촉", "사과", "확인", "부탁", "항의"] as const;
+export const modes = intents;
 export const relationships = ["상사", "동료", "후배", "친구", "모임", "가족", "기타"] as const;
-export const helpTypes = ["말투 점검", "답장", "감정 해석", "거리두기", "상대 의도 분석", "직장용 표현"] as const;
+export const helpTypes = ["바로 보낼 답장", "말투 점검", "감정 정리", "상대 의도 확인", "거리두기", "직장용 표현"] as const;
 export const tones = ["직장용", "부드럽게", "단호하게", "가볍게", "거리두기"] as const;
 
-export type AnalysisMode = (typeof modes)[number];
+export type ReplyIntent = (typeof intents)[number];
+export type AnalysisMode = ReplyIntent;
 export type Relationship = (typeof relationships)[number];
 export type HelpType = (typeof helpTypes)[number];
 export type Tone = (typeof tones)[number];
 
 export type AnalysisRequest = {
-  mode: AnalysisMode;
+  intent: ReplyIntent;
+  mode?: AnalysisMode;
   relationship: Relationship;
-  helpType: HelpType;
+  helpType?: HelpType;
   tone: Tone;
   situation: string;
 };
@@ -101,9 +104,9 @@ export function isAnalysisRequest(value: unknown): value is AnalysisRequest {
   return (
     typeof input.situation === "string" &&
     input.situation.trim().length > 0 &&
-    modes.includes(input.mode as AnalysisMode) &&
+    intents.includes((input.intent || input.mode) as ReplyIntent) &&
     relationships.includes(input.relationship as Relationship) &&
-    helpTypes.includes(input.helpType as HelpType) &&
+    (input.helpType === undefined || helpTypes.includes(input.helpType as HelpType)) &&
     tones.includes(input.tone as Tone)
   );
 }
