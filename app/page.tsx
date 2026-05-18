@@ -23,6 +23,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ChangeEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createClient as createBrowserSupabaseClient } from "@/lib/supabase/browser";
 import {
   demoAnalysisResult,
   helpTypes,
@@ -90,6 +91,8 @@ export default function Home() {
   const [errorMessage, setErrorMessage] = useState("");
   const [imageDataUrl, setImageDataUrl] = useState("");
   const [imageName, setImageName] = useState("");
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
   const [speechMessage, setSpeechMessage] = useState("");
@@ -119,6 +122,29 @@ export default function Home() {
 
     setTrialStartedAt(start);
     setUsedCount(Number.isFinite(savedUsed) ? Math.max(0, savedUsed) : 0);
+  }, []);
+
+  useEffect(() => {
+    const supabase = createBrowserSupabaseClient();
+    let isMounted = true;
+
+    supabase.auth.getUser().then(({ data }) => {
+      if (!isMounted) return;
+      setUserEmail(data.user?.email ?? null);
+      setAuthChecked(true);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserEmail(session?.user?.email ?? null);
+      setAuthChecked(true);
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -309,9 +335,16 @@ export default function Home() {
     setHasResult(false);
   }
 
+  async function handleSignOut() {
+    const supabase = createBrowserSupabaseClient();
+    await supabase.auth.signOut();
+    setUserEmail(null);
+    setAuthChecked(true);
+  }
+
   return (
     <main className="min-h-screen bg-[#f6f4ef] text-[#171717]">
-      <BrandHero />
+      <BrandHero authChecked={authChecked} userEmail={userEmail} onSignOut={handleSignOut} />
 
       <section id="translator" className="border-y border-black/10 bg-[#f6f4ef]">
         <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
@@ -522,7 +555,15 @@ export default function Home() {
   );
 }
 
-function BrandHero() {
+function BrandHero({
+  authChecked,
+  userEmail,
+  onSignOut,
+}: {
+  authChecked: boolean;
+  userEmail: string | null;
+  onSignOut: () => void;
+}) {
   return (
     <section className="min-h-screen bg-[#fbfaf8] text-black">
       <header className="flex min-h-24 items-center justify-between px-5 sm:px-8 lg:px-12">
@@ -545,9 +586,22 @@ function BrandHero() {
           <a href="#footer" className="transition hover:text-[#7651e6]">FAQ</a>
         </nav>
         <div className="flex items-center gap-3">
-          <Link href="/login?next=/" className="hidden text-sm font-bold text-black/70 transition hover:text-black sm:inline">
-            로그인
-          </Link>
+          {authChecked && userEmail ? (
+            <>
+              <span className="hidden max-w-40 truncate text-sm font-bold text-black/55 sm:inline">{userEmail}</span>
+              <button
+                type="button"
+                onClick={onSignOut}
+                className="hidden text-sm font-bold text-black/70 transition hover:text-black sm:inline"
+              >
+                로그아웃
+              </button>
+            </>
+          ) : (
+            <Link href="/login?next=/" className="hidden text-sm font-bold text-black/70 transition hover:text-black sm:inline">
+              로그인
+            </Link>
+          )}
           <Link
             href="/signup?next=/"
             className="inline-flex h-12 items-center justify-center rounded-[14px] bg-gradient-to-r from-[#7651e6] to-[#8f63ff] px-5 text-sm font-black text-white shadow-[0_12px_30px_rgba(118,81,230,0.28)] transition hover:scale-[1.01]"
