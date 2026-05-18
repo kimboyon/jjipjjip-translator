@@ -567,7 +567,7 @@ function BrandHero() {
             <span className="mt-6 block text-4xl font-black sm:text-5xl lg:text-6xl">말하지 않아도, 다~ 알아요.</span>
           </h1>
           <p className="mt-6 max-w-xl text-base font-medium leading-8 text-black/55">
-            가까운 사람과 더 가까워지긴 부담스러울 때, 먼 사람과 더 멀어지긴 싫을 때. 찝찝한 말을 캡쳐하거나 적어두면 보내기 좋은 답장으로 정리해드려요.
+            가까운 사람과 더 가까워지긴 부담스러울 때, 먼 사람과 더 멀어지긴 싫을 때. 찝찝함 말을 캡쳐하거나 적어두면 보내기 좋은 답장으로 정리해드려요.
           </p>
           <div className="mt-9 flex flex-wrap items-center gap-5">
             <a
