@@ -14,7 +14,7 @@ export default async function Signup({
   return (
     <AuthShell
       title="회원가입"
-      subtitle="Plus로 전환하고 찝찝한 말을 계속 정리해보세요."
+      subtitle="Plus로 전환하고 EMOTRANS 분석을 계속 이용해보세요."
       footer={
         <>
           이미 계정이 있으신가요?{" "}

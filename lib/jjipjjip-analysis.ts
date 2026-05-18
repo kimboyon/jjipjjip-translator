@@ -16,7 +16,9 @@ export type AnalysisRequest = {
   relationship: Relationship;
   helpType?: HelpType;
   tone: Tone;
-  situation: string;
+  situation?: string;
+  imageDataUrl?: string;
+  imageName?: string;
 };
 
 export type AnalysisResult = {
@@ -25,6 +27,8 @@ export type AnalysisResult = {
   possibleMeanings: string[];
   responseLevel: string;
   toneRisk: string;
+  theoreticalGrounds: Array<{ title: string; body: string }>;
+  strategy: string;
   replies: string[];
   avoid: string[];
   nextAction: string;
@@ -46,6 +50,21 @@ export const demoAnalysisResult: AnalysisResult = {
   ],
   responseLevel: "낮게 시작",
   toneRisk: "조금 차가움",
+  theoreticalGrounds: [
+    {
+      title: "비폭력대화(NVC)",
+      body: "관찰, 감정, 욕구, 요청을 분리하면 상대를 비난하지 않으면서도 내 불편함을 명확히 전달할 수 있습니다.",
+    },
+    {
+      title: "귀인 오류",
+      body: "상대의 한 문장을 곧바로 의도나 성격으로 단정하면 갈등이 커질 수 있어, 확인 가능한 사실과 가능한 해석을 나눠 보는 것이 안전합니다.",
+    },
+    {
+      title: "체면 위협 행위",
+      body: "직장 관계에서는 공개적 반박보다 업무 기준과 요청 형태로 표현할 때 상대의 방어 반응을 줄일 가능성이 높습니다.",
+    },
+  ],
+  strategy: "처음 답장은 감정 반박보다 사실 확인과 업무 기준 정리에 초점을 두고, 반복될 때만 더 명확한 경계 표현으로 올리는 전략이 적절합니다.",
   replies: [
     "그렇게 느끼실 수도 있을 것 같아요. 다만 저는 이 건은 책임지고 마무리하려고 일정 정리해두었습니다.",
     "말씀 주신 부분 참고하겠습니다. 저는 이번 건은 업무 기준에 맞춰 진행 상황을 공유드리겠습니다.",
@@ -79,6 +98,21 @@ export const analysisJsonSchema = {
     possibleMeanings: { type: "array", minItems: 3, maxItems: 3, items: { type: "string" } },
     responseLevel: { type: "string" },
     toneRisk: { type: "string" },
+    theoreticalGrounds: {
+      type: "array",
+      minItems: 3,
+      maxItems: 3,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          title: { type: "string" },
+          body: { type: "string" },
+        },
+        required: ["title", "body"],
+      },
+    },
+    strategy: { type: "string" },
     replies: { type: "array", minItems: 3, maxItems: 3, items: { type: "string" } },
     avoid: { type: "array", minItems: 3, maxItems: 3, items: { type: "string" } },
     nextAction: { type: "string" },
@@ -90,6 +124,8 @@ export const analysisJsonSchema = {
     "possibleMeanings",
     "responseLevel",
     "toneRisk",
+    "theoreticalGrounds",
+    "strategy",
     "replies",
     "avoid",
     "nextAction",
@@ -102,8 +138,8 @@ export function isAnalysisRequest(value: unknown): value is AnalysisRequest {
   const input = value as Partial<AnalysisRequest>;
 
   return (
-    typeof input.situation === "string" &&
-    input.situation.trim().length > 0 &&
+    ((typeof input.situation === "string" && input.situation.trim().length > 0) ||
+      (typeof input.imageDataUrl === "string" && /^data:image\/(png|jpeg|jpg|gif|webp);base64,/i.test(input.imageDataUrl))) &&
     intents.includes((input.intent || input.mode) as ReplyIntent) &&
     relationships.includes(input.relationship as Relationship) &&
     (input.helpType === undefined || helpTypes.includes(input.helpType as HelpType)) &&
@@ -121,6 +157,10 @@ export function normalizeAnalysisResult(value: unknown, source: "ai" | "demo"): 
     possibleMeanings: result.possibleMeanings?.length ? result.possibleMeanings.slice(0, 3) : demoAnalysisResult.possibleMeanings,
     responseLevel: result.responseLevel || demoAnalysisResult.responseLevel,
     toneRisk: result.toneRisk || demoAnalysisResult.toneRisk,
+    theoreticalGrounds: result.theoreticalGrounds?.length
+      ? result.theoreticalGrounds.slice(0, 3)
+      : demoAnalysisResult.theoreticalGrounds,
+    strategy: result.strategy || demoAnalysisResult.strategy,
     replies: result.replies?.length ? result.replies.slice(0, 3) : demoAnalysisResult.replies,
     avoid: result.avoid?.length ? result.avoid.slice(0, 3) : demoAnalysisResult.avoid,
     nextAction: result.nextAction || demoAnalysisResult.nextAction,

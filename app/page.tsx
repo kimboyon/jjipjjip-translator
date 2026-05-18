@@ -15,10 +15,13 @@ import {
   RefreshCw,
   ShieldCheck,
   Sparkles,
+  Upload,
   UserPlus,
+  X,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import type { ChangeEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   demoAnalysisResult,
@@ -85,6 +88,8 @@ export default function Home() {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [result, setResult] = useState<AnalysisResult>(demoAnalysisResult);
   const [errorMessage, setErrorMessage] = useState("");
+  const [imageDataUrl, setImageDataUrl] = useState("");
+  const [imageName, setImageName] = useState("");
   const [isListening, setIsListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
   const [speechMessage, setSpeechMessage] = useState("");
@@ -101,7 +106,7 @@ export default function Home() {
   }, [trialStartedAt]);
   const remainingUses = Math.max(0, TRIAL_USE_LIMIT - usedCount);
   const trialLocked = daysLeft <= 0 || remainingUses <= 0;
-  const canAnalyze = situation.trim().length > 0 && !isGenerating;
+  const canAnalyze = (situation.trim().length > 0 || imageDataUrl.length > 0) && !isGenerating;
 
   useEffect(() => {
     const savedStart = window.localStorage.getItem(TRIAL_START_KEY);
@@ -207,7 +212,7 @@ export default function Home() {
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ intent, relationship, helpType, tone, situation }),
+        body: JSON.stringify({ intent, relationship, helpType, tone, situation, imageDataUrl, imageName }),
       });
       const data = await response.json();
 
@@ -266,6 +271,44 @@ export default function Home() {
     }
   }
 
+  function handleImageChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setErrorMessage("PNG, JPG, WebP 같은 이미지 파일만 첨부할 수 있어요.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setErrorMessage("이미지는 5MB 이하로 첨부해주세요.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result !== "string") {
+        setErrorMessage("이미지를 읽지 못했습니다. 다른 파일로 다시 시도해주세요.");
+        return;
+      }
+
+      setImageDataUrl(reader.result);
+      setImageName(file.name);
+      setHasResult(false);
+      setErrorMessage("");
+    };
+    reader.onerror = () => setErrorMessage("이미지를 읽지 못했습니다. 다른 파일로 다시 시도해주세요.");
+    reader.readAsDataURL(file);
+  }
+
+  function clearAttachedImage() {
+    setImageDataUrl("");
+    setImageName("");
+    setHasResult(false);
+  }
+
   return (
     <main className="min-h-screen bg-[#f6f4ef] text-[#171717]">
       <BrandHero />
@@ -275,7 +318,7 @@ export default function Home() {
           <header className="mb-5 flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-[#b98d4d]">Translator Studio</p>
-              <h2 className="mt-2 text-3xl font-black leading-tight text-black sm:text-4xl">찝찝한 말, 보내기 전에 정리하기</h2>
+              <h2 className="mt-2 text-3xl font-black leading-tight text-black sm:text-4xl">EMOTRANS-찝찝한 번역기</h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-black/55">
                 계획서 기준의 답장 전용 화면입니다. 말 꺼내기 불편한 상황을 입력하면 감정, 사실, 해석, 대응을 나눠 바로 복사 가능한 문장으로 바꿔줍니다.
               </p>
@@ -370,6 +413,40 @@ export default function Home() {
                 placeholder={'예: 상사가 "요즘 MZ들은 책임감이 약한 것 같아"라고 했는데 나한테 하는 말 같아서 기분이 나빴다.'}
               />
             </label>
+            <div className="mt-3 rounded-[6px] border border-dashed border-black/15 bg-[#fbfaf7] p-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-black text-black">캡쳐 이미지로 분석하기</p>
+                  <p className="mt-1 text-xs leading-5 text-black/50">
+                    대화 캡쳐를 첨부하면 이미지 속 문장을 읽어 분석에 함께 반영합니다.
+                  </p>
+                </div>
+                <label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-[6px] bg-black px-4 text-xs font-black text-white transition hover:bg-[#333]">
+                  <Upload size={14} /> 이미지 첨부
+                  <input type="file" accept="image/png,image/jpeg,image/jpg,image/webp,image/gif" className="sr-only" onChange={handleImageChange} />
+                </label>
+              </div>
+              {imageDataUrl ? (
+                <div className="mt-3 grid gap-3 rounded-[6px] border border-black/10 bg-white p-3 sm:grid-cols-[112px_1fr_auto] sm:items-center">
+                  <div className="relative h-24 overflow-hidden rounded-[6px] bg-[#f3f1eb]">
+                    <Image src={imageDataUrl} alt="첨부한 캡쳐 이미지 미리보기" fill sizes="112px" className="object-cover" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-black text-black">{imageName || "첨부 이미지"}</p>
+                    <p className="mt-1 text-xs leading-5 text-black/50">
+                      이미지 내용과 입력한 설명을 함께 분석합니다. 개인정보가 보이면 가린 뒤 첨부해주세요.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={clearAttachedImage}
+                    className="inline-flex h-10 items-center justify-center gap-1 rounded-[6px] border border-black/10 px-3 text-xs font-black text-black/60 transition hover:border-black hover:text-black"
+                  >
+                    <X size={14} /> 삭제
+                  </button>
+                </div>
+              ) : null}
+            </div>
             {speechMessage ? (
               <p
                 className={classNames(
@@ -453,7 +530,7 @@ function BrandHero() {
           <span className="relative h-12 w-12 overflow-hidden rounded-full bg-white">
             <Image src="/emotrans-logo.jpg" alt="EMOTRANS 로고" fill sizes="48px" className="object-cover" priority />
           </span>
-          <span className="text-xl font-black tracking-normal">찝찝함 번역기</span>
+          <span className="text-xl font-black tracking-normal">EMOTRANS-찝찝한 번역기</span>
         </Link>
         <nav className="hidden items-center gap-10 text-sm font-bold text-black/75 lg:flex">
           <a href="#method" className="transition hover:text-[#7651e6]">서비스 소개</a>
@@ -479,7 +556,7 @@ function BrandHero() {
         <div>
           <p className="text-base font-black text-[#7651e6]">대화 속 숨은 의도, 감정, 불편함까지</p>
           <h1 className="mt-8 text-6xl font-black leading-[1.02] tracking-normal sm:text-7xl lg:text-8xl">
-            찝찝함 번역기
+            EMOTRANS
             <span className="mt-6 block text-4xl font-black sm:text-5xl lg:text-6xl">말하지 않아도, 다~ 알아요.</span>
           </h1>
           <p className="mt-6 max-w-xl text-base font-medium leading-8 text-black/55">
@@ -503,7 +580,7 @@ function BrandHero() {
           <div className="relative overflow-hidden rounded-[28px] border border-black/10 bg-white shadow-[0_28px_90px_rgba(87,70,130,0.14)]">
             <Image
               src="/jjipjjip-landing-reference.jpg"
-              alt="찝찝함 번역기 메인 콘텐츠 이미지"
+              alt="EMOTRANS-찝찝한 번역기 메인 콘텐츠 이미지"
               width={1792}
               height={1008}
               className="h-auto w-full"
@@ -545,7 +622,7 @@ function LandingStory() {
               의미는 또렷하게.
             </h2>
             <p className="mt-6 text-base leading-8 text-black/58">
-              찝찝함 번역기는 상대를 판단하기보다 내가 확인할 수 있는 사실과 감정을 먼저 정리합니다. 그래서 답장이 공격적이거나 애매해지는 순간을 줄입니다.
+              EMOTRANS-찝찝한 번역기는 상대를 판단하기보다 내가 확인할 수 있는 사실과 감정을 먼저 정리합니다. 그래서 답장이 공격적이거나 애매해지는 순간을 줄입니다.
             </p>
           </div>
           <div className="grid gap-4 md:grid-cols-3">
@@ -583,7 +660,7 @@ function SiteFooter() {
     <footer id="footer" className="bg-[#07130f] text-white">
       <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1.1fr_0.9fr_0.9fr] lg:px-8">
         <div>
-          <p className="text-lg font-black text-[#f4c46d]">찝찝함 번역기</p>
+          <p className="text-lg font-black text-[#f4c46d]">EMOTRANS-찝찝한 번역기</p>
           <p className="mt-3 max-w-sm text-sm leading-6 text-white/55">
             보내기 전 감정과 사실을 분리하고, 관계를 덜 해치면서도 나를 지키는 문장을 제안합니다.
           </p>
@@ -593,7 +670,7 @@ function SiteFooter() {
           <dl className="mt-4 space-y-2 text-xs leading-5 text-white/58">
             <div className="flex gap-2">
               <dt className="w-20 text-white/35">브랜드명</dt>
-              <dd>찝찝함 번역기</dd>
+              <dd>EMOTRANS-찝찝한 번역기</dd>
             </div>
             <div className="flex gap-2">
               <dt className="w-20 text-white/35">사업자번호</dt>
@@ -615,7 +692,7 @@ function SiteFooter() {
         </div>
       </div>
       <div className="border-t border-white/10 py-4 text-center text-[11px] text-white/35">
-        Copyright 2026 Jjipjjip Translator. All rights reserved.
+        Copyright 2026 EMOTRANS. All rights reserved.
       </div>
     </footer>
   );
@@ -693,6 +770,8 @@ function ResultPanel({
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <PreviewCard title="대응 필요도" body="낮게 시작 / 확인 필요 / 공식 대응" />
             <PreviewCard title="말투 리스크" body="차가움 / 공격적 / 모호함" />
+            <PreviewCard title="이론적 근거" body="NVC / 귀인 오류 / 경계 설정" />
+            <PreviewCard title="대응 전략" body="관계와 톤에 맞춘 단계별 접근" />
           </div>
         </div>
 
@@ -711,7 +790,7 @@ function ResultPanel({
     <aside className="rounded-[6px] border border-black/10 bg-white p-4 shadow-[0_18px_70px_rgba(0,0,0,0.06)] sm:p-5 lg:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-sm font-black text-slate-950">찝찝함 정리 결과</p>
+          <p className="text-sm font-black text-slate-950">EMOTRANS 정리 결과</p>
           <p className="mt-1 text-xs text-slate-500">
             {relationship} · {helpType} · {tone}
           </p>
@@ -752,10 +831,30 @@ function ResultPanel({
         </div>
       </section>
 
+      <section className="mt-4 rounded-[6px] border border-black/10 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-black text-slate-950">분석 근거가 되는 커뮤니케이션 이론</h2>
+          <span className="rounded-full bg-[#f3f1eb] px-2.5 py-1 text-xs font-bold text-black/55">참고 프레임</span>
+        </div>
+        <div className="mt-3 grid gap-3">
+          {result.theoreticalGrounds.map((ground) => (
+            <div key={ground.title} className="rounded-[6px] bg-[#f7f7f4] p-4">
+              <p className="text-sm font-black text-black">{ground.title}</p>
+              <p className="mt-2 text-sm leading-7 text-black/65">{ground.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <StatusCard title="대응 필요도" value={result.responseLevel} tone="orange" />
         <StatusCard title="말투 리스크" value={result.toneRisk} tone="indigo" />
       </div>
+
+      <section className="mt-4 rounded-[6px] border border-black/10 bg-[#f3f1eb] p-4">
+        <h2 className="text-sm font-black text-black">전문 대응 전략</h2>
+        <p className="mt-2 text-sm leading-7 text-black/65">{result.strategy}</p>
+      </section>
 
       <section className="mt-4 rounded-[6px] border border-black/10 p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
