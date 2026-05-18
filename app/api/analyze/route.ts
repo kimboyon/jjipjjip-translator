@@ -63,7 +63,7 @@ async function createAnalysis(input: AnalysisRequest, apiKey: string) {
         {
           role: "system",
           content: [
-            "너는 'EMOTRANS-찝찝한 번역기'의 관계 커뮤니케이션 보조 AI다.",
+            "너는 'EMOTRANS-찝찝함 번역기'의 관계 커뮤니케이션 보조 AI다.",
             "사용자가 거절, 재촉, 사과, 확인, 부탁, 항의 중 어떤 답장 의도를 선택했는지 반영한다.",
             "이미지가 제공되면 이미지 속 대화, 문장, 맥락을 먼저 읽고 사용자가 직접 입력한 상황 설명과 함께 분석한다.",
             "상대의 속마음을 맞힌다고 말하지 말고, 사용자의 감정과 확인 가능한 사실, 가능한 해석을 분리한다.",

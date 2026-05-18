@@ -318,7 +318,7 @@ export default function Home() {
           <header className="mb-5 flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-[#b98d4d]">Translator Studio</p>
-              <h2 className="mt-2 text-3xl font-black leading-tight text-black sm:text-4xl">EMOTRANS-찝찝한 번역기</h2>
+              <h2 className="mt-2 text-3xl font-black leading-tight text-black sm:text-4xl">EMOTRANS-찝찝함 번역기</h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-black/55">
                 계획서 기준의 답장 전용 화면입니다. 말 꺼내기 불편한 상황을 입력하면 감정, 사실, 해석, 대응을 나눠 바로 복사 가능한 문장으로 바꿔줍니다.
               </p>
@@ -530,7 +530,12 @@ function BrandHero() {
           <span className="relative h-12 w-12 overflow-hidden rounded-full bg-white">
             <Image src="/emotrans-logo.jpg" alt="EMOTRANS 로고" fill sizes="48px" className="object-cover" priority />
           </span>
-          <span className="text-xl font-black tracking-normal">EMOTRANS-찝찝한 번역기</span>
+          <span className="text-xl font-black tracking-normal">
+            <span className="bg-gradient-to-r from-[#ff4d6d] via-[#f59e0b] via-[#22c55e] via-[#06b6d4] to-[#7c3aed] bg-clip-text text-transparent">
+              EMOTRANS
+            </span>
+            -찝찝함 번역기
+          </span>
         </Link>
         <nav className="hidden items-center gap-10 text-sm font-bold text-black/75 lg:flex">
           <a href="#method" className="transition hover:text-[#7651e6]">서비스 소개</a>
@@ -556,7 +561,9 @@ function BrandHero() {
         <div>
           <p className="text-base font-black text-[#7651e6]">대화 속 숨은 의도, 감정, 불편함까지</p>
           <h1 className="mt-8 text-6xl font-black leading-[1.02] tracking-normal sm:text-7xl lg:text-8xl">
-            EMOTRANS
+            <span className="bg-gradient-to-r from-[#ff4d6d] via-[#f59e0b] via-[#22c55e] via-[#06b6d4] to-[#7c3aed] bg-clip-text text-transparent">
+              EMOTRANS
+            </span>
             <span className="mt-6 block text-4xl font-black sm:text-5xl lg:text-6xl">말하지 않아도, 다~ 알아요.</span>
           </h1>
           <p className="mt-6 max-w-xl text-base font-medium leading-8 text-black/55">
@@ -580,7 +587,7 @@ function BrandHero() {
           <div className="relative overflow-hidden rounded-[28px] border border-black/10 bg-white shadow-[0_28px_90px_rgba(87,70,130,0.14)]">
             <Image
               src="/jjipjjip-landing-reference.jpg"
-              alt="EMOTRANS-찝찝한 번역기 메인 콘텐츠 이미지"
+              alt="EMOTRANS-찝찝함 번역기 메인 콘텐츠 이미지"
               width={1792}
               height={1008}
               className="h-auto w-full"
@@ -622,7 +629,7 @@ function LandingStory() {
               의미는 또렷하게.
             </h2>
             <p className="mt-6 text-base leading-8 text-black/58">
-              EMOTRANS-찝찝한 번역기는 상대를 판단하기보다 내가 확인할 수 있는 사실과 감정을 먼저 정리합니다. 그래서 답장이 공격적이거나 애매해지는 순간을 줄입니다.
+              EMOTRANS-찝찝함 번역기는 상대를 판단하기보다 내가 확인할 수 있는 사실과 감정을 먼저 정리합니다. 그래서 답장이 공격적이거나 애매해지는 순간을 줄입니다.
             </p>
           </div>
           <div className="grid gap-4 md:grid-cols-3">
@@ -660,7 +667,7 @@ function SiteFooter() {
     <footer id="footer" className="bg-[#07130f] text-white">
       <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1.1fr_0.9fr_0.9fr] lg:px-8">
         <div>
-          <p className="text-lg font-black text-[#f4c46d]">EMOTRANS-찝찝한 번역기</p>
+          <p className="text-lg font-black text-[#f4c46d]">EMOTRANS-찝찝함 번역기</p>
           <p className="mt-3 max-w-sm text-sm leading-6 text-white/55">
             보내기 전 감정과 사실을 분리하고, 관계를 덜 해치면서도 나를 지키는 문장을 제안합니다.
           </p>
@@ -670,7 +677,7 @@ function SiteFooter() {
           <dl className="mt-4 space-y-2 text-xs leading-5 text-white/58">
             <div className="flex gap-2">
               <dt className="w-20 text-white/35">브랜드명</dt>
-              <dd>EMOTRANS-찝찝한 번역기</dd>
+              <dd>EMOTRANS-찝찝함 번역기</dd>
             </div>
             <div className="flex gap-2">
               <dt className="w-20 text-white/35">사업자번호</dt>
