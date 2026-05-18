@@ -531,7 +531,7 @@ function BrandHero() {
             <Image src="/emotrans-logo.jpg" alt="EMOTRANS 로고" fill sizes="48px" className="object-cover" priority />
           </span>
           <span className="text-xl font-black tracking-normal">
-            <span className="bg-gradient-to-r from-[#ff4d6d] via-[#f59e0b] via-[#22c55e] via-[#06b6d4] to-[#7c3aed] bg-clip-text text-transparent">
+            <span className="bg-[linear-gradient(90deg,#6d37e8_0%,#5b61ef_24%,#63a8f2_48%,#73d6be_72%,#8bef5d_100%)] bg-clip-text text-transparent">
               EMOTRANS
             </span>
             -찝찝함 번역기
@@ -561,7 +561,7 @@ function BrandHero() {
         <div>
           <p className="text-base font-black text-[#7651e6]">대화 속 숨은 의도, 감정, 불편함까지</p>
           <h1 className="mt-8 text-6xl font-black leading-[1.02] tracking-normal sm:text-7xl lg:text-8xl">
-            <span className="bg-gradient-to-r from-[#ff4d6d] via-[#f59e0b] via-[#22c55e] via-[#06b6d4] to-[#7c3aed] bg-clip-text text-transparent">
+            <span className="bg-[linear-gradient(90deg,#6d37e8_0%,#5b61ef_24%,#63a8f2_48%,#73d6be_72%,#8bef5d_100%)] bg-clip-text text-transparent">
               EMOTRANS
             </span>
             <span className="mt-6 block text-4xl font-black sm:text-5xl lg:text-6xl">말하지 않아도, 다~ 알아요.</span>
