@@ -11,9 +11,20 @@ const oauthProviders = {
   kakao: "kakao"
 } satisfies Record<string, Provider>;
 
+const productionSiteUrl = "https://jjipjjip-translator.vercel.app";
+
 function getSafeNext(formData: FormData, fallback = "/") {
   const next = String(formData.get("next") ?? fallback);
   return next.startsWith("/") && !next.startsWith("//") ? next : fallback;
+}
+
+function isLocalOrigin(origin: string) {
+  return origin.startsWith("http://localhost") || origin.startsWith("http://127.0.0.1");
+}
+
+function getConfiguredSiteUrl() {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  return siteUrl && !isLocalOrigin(siteUrl) ? siteUrl : productionSiteUrl;
 }
 
 async function getRequestOrigin() {
@@ -21,16 +32,20 @@ async function getRequestOrigin() {
   const origin = headerStore.get("origin");
 
   if (origin?.startsWith("http://") || origin?.startsWith("https://")) {
-    return origin;
+    return isLocalOrigin(origin) ? getConfiguredSiteUrl() : origin;
   }
 
   const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
   if (host) {
+    if (host.startsWith("localhost") || host.startsWith("127.0.0.1")) {
+      return getConfiguredSiteUrl();
+    }
+
     const protocol = headerStore.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
     return `${protocol}://${host}`;
   }
 
-  return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  return getConfiguredSiteUrl();
 }
 
 export async function signIn(formData: FormData) {
