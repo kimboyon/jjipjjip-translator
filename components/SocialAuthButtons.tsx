@@ -3,17 +3,12 @@ import { signInWithOAuth } from "@/app/actions/auth";
 const providers = [
   {
     key: "google",
-    label: "구글",
+    label: "Google로 계속하기",
     className: "border-black/10 bg-white text-black hover:border-black"
   },
   {
-    key: "naver",
-    label: "네이버",
-    className: "border-[#03c75a] bg-[#03c75a] text-white hover:bg-[#02b351]"
-  },
-  {
     key: "kakao",
-    label: "카카오톡",
+    label: "Kakao로 계속하기",
     className: "border-[#fee500] bg-[#fee500] text-[#191600] hover:bg-[#f6dc00]"
   }
 ];
@@ -32,7 +27,7 @@ export function SocialAuthButtons({
         <span className="text-[11px] font-semibold text-black/45">또는 소셜 계정으로 계속하기</span>
         <span className="h-px flex-1 bg-black/10" />
       </div>
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
         {providers.map((provider) => (
           <form key={provider.key} action={signInWithOAuth}>
             <input type="hidden" name="provider" value={provider.key} />

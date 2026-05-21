@@ -7,8 +7,7 @@ import { redirect } from "next/navigation";
 
 const oauthProviders = {
   google: "google",
-  kakao: "kakao",
-  naver: "custom:naver"
+  kakao: "kakao"
 } satisfies Record<string, Provider>;
 
 function getSafeNext(formData: FormData, fallback = "/") {

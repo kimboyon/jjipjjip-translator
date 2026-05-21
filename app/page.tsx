@@ -1013,7 +1013,7 @@ function UpgradePanel({ daysLeft, remainingUses }: { daysLeft: number; remaining
         </div>
         <CreditCard className="shrink-0 text-white/60" size={26} />
       </div>
-      <p className="mt-4 text-sm leading-6 text-white/65">{reason} 회원가입 후 구글, 네이버, 카카오톡으로 로그인하고 유료 전환을 이어갈 수 있습니다.</p>
+      <p className="mt-4 text-sm leading-6 text-white/65">{reason} 회원가입 후 Google 또는 Kakao로 로그인하고 유료 전환을 이어갈 수 있습니다.</p>
       <div className="mt-4 grid grid-cols-2 gap-2 text-xs font-bold text-white/65">
         <div className="rounded-[6px] border border-white/10 p-3">
           <span className="block text-white">남은 일수</span>
