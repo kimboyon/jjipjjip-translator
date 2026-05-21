@@ -95,10 +95,12 @@ export async function signInWithOAuth(formData: FormData) {
 
   const supabase = await createClient();
   const origin = await getRequestOrigin();
+  const scopes = provider === "kakao" ? "profile_nickname profile_image" : undefined;
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}`
+      redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}`,
+      scopes
     }
   });
 
