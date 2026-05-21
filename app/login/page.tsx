@@ -10,7 +10,7 @@ export default async function Login({
   searchParams: Promise<{ message?: string; next?: string }>;
 }) {
   const params = await searchParams;
-  const next = params.next?.startsWith("/") && !params.next.startsWith("//") ? params.next : "/";
+  const next = params.next?.startsWith("/") && !params.next.startsWith("//") ? params.next : "/#translator";
 
   return (
     <AuthShell

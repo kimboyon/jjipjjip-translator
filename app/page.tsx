@@ -598,12 +598,12 @@ function BrandHero({
               </button>
             </>
           ) : (
-            <Link href="/login?next=/" className="hidden text-sm font-bold text-black/70 transition hover:text-black sm:inline">
+            <Link href="/login?next=%2F%23translator" className="hidden text-sm font-bold text-black/70 transition hover:text-black sm:inline">
               로그인
             </Link>
           )}
           <Link
-            href="/signup?next=/"
+            href="/signup?next=%2F%23translator"
             className="inline-flex h-12 items-center justify-center rounded-[14px] bg-gradient-to-r from-[#7651e6] to-[#8f63ff] px-5 text-sm font-black text-white shadow-[0_12px_30px_rgba(118,81,230,0.28)] transition hover:scale-[1.01]"
           >
             무료로 시작하기
@@ -1025,7 +1025,7 @@ function UpgradePanel({ daysLeft, remainingUses }: { daysLeft: number; remaining
         </div>
       </div>
       <Link
-        href="/signup?next=/"
+        href="/signup?next=%2F%23translator"
         className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-[6px] bg-white px-4 text-sm font-black text-black transition hover:bg-[#fff7df]"
       >
         <UserPlus size={16} /> 회원가입하고 계속하기
