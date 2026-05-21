@@ -3,6 +3,7 @@
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import type { Provider } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 const oauthProviders = {
@@ -13,6 +14,23 @@ const oauthProviders = {
 function getSafeNext(formData: FormData, fallback = "/") {
   const next = String(formData.get("next") ?? fallback);
   return next.startsWith("/") && !next.startsWith("//") ? next : fallback;
+}
+
+async function getRequestOrigin() {
+  const headerStore = await headers();
+  const origin = headerStore.get("origin");
+
+  if (origin?.startsWith("http://") || origin?.startsWith("https://")) {
+    return origin;
+  }
+
+  const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
+  if (host) {
+    const protocol = headerStore.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+    return `${protocol}://${host}`;
+  }
+
+  return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 }
 
 export async function signIn(formData: FormData) {
@@ -76,10 +94,11 @@ export async function signInWithOAuth(formData: FormData) {
   }
 
   const supabase = await createClient();
+  const origin = await getRequestOrigin();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/auth/callback?next=${encodeURIComponent(next)}`
+      redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}`
     }
   });
 
