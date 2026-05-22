@@ -127,11 +127,28 @@ export default function Home() {
   useEffect(() => {
     const supabase = createBrowserSupabaseClient();
     let isMounted = true;
+    const url = new URL(window.location.href);
+    const oauthError = url.searchParams.get("error_code") || url.searchParams.get("error");
 
     supabase.auth.getUser().then(({ data }) => {
       if (!isMounted) return;
-      setIsSignedIn(Boolean(data.user?.id));
+      const signedIn = Boolean(data.user?.id);
+      setIsSignedIn(signedIn);
       setAuthChecked(true);
+
+      if (oauthError) {
+        if (signedIn) {
+          window.history.replaceState(null, "", "/#translator");
+          window.scrollTo({ left: 0, top: document.getElementById("translator")?.offsetTop ?? 0 });
+          return;
+        }
+
+        const message =
+          oauthError === "flow_state_already_used"
+            ? "소셜 로그인 흐름이 이미 처리되었습니다. 로그인 버튼을 다시 눌러주세요."
+            : "소셜 로그인에 실패했습니다. 다시 시도해주세요.";
+        window.location.replace(`/login?message=${encodeURIComponent(message)}`);
+      }
     });
 
     const {
@@ -343,7 +360,7 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f6f4ef] text-[#171717]">
+    <main className="min-h-screen overflow-x-hidden bg-[#f6f4ef] text-[#171717]">
       <BrandHero authChecked={authChecked} isSignedIn={isSignedIn} onSignOut={handleSignOut} />
 
       <section id="translator" className="border-y border-black/10 bg-[#f6f4ef]">
