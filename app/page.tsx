@@ -128,7 +128,14 @@ export default function Home() {
     const supabase = createBrowserSupabaseClient();
     let isMounted = true;
     const url = new URL(window.location.href);
-    const oauthError = url.searchParams.get("error_code") || url.searchParams.get("error");
+    const hashParams = new URLSearchParams(url.hash.startsWith("#") ? url.hash.slice(1) : url.hash);
+    const oauthError =
+      url.searchParams.get("error_code") ||
+      hashParams.get("error_code") ||
+      url.searchParams.get("error") ||
+      hashParams.get("error");
+    const oauthErrorDescription =
+      url.searchParams.get("error_description") || hashParams.get("error_description");
 
     supabase.auth.getUser().then(({ data }) => {
       if (!isMounted) return;
@@ -146,7 +153,7 @@ export default function Home() {
         const message =
           oauthError === "flow_state_already_used"
             ? "소셜 로그인 흐름이 이미 처리되었습니다. 로그인 버튼을 다시 눌러주세요."
-            : "소셜 로그인에 실패했습니다. 다시 시도해주세요.";
+            : oauthErrorDescription || "소셜 로그인에 실패했습니다. 다시 시도해주세요.";
         window.location.replace(`/login?message=${encodeURIComponent(message)}`);
       }
     });
