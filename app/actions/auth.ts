@@ -32,15 +32,11 @@ async function getRequestOrigin() {
   const origin = headerStore.get("origin");
 
   if (origin?.startsWith("http://") || origin?.startsWith("https://")) {
-    return isLocalOrigin(origin) ? getConfiguredSiteUrl() : origin;
+    return origin;
   }
 
   const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
   if (host) {
-    if (host.startsWith("localhost") || host.startsWith("127.0.0.1")) {
-      return getConfiguredSiteUrl();
-    }
-
     const protocol = headerStore.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
     return `${protocol}://${host}`;
   }
