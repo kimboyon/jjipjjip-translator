@@ -91,7 +91,7 @@ export default function Home() {
   const [errorMessage, setErrorMessage] = useState("");
   const [imageDataUrl, setImageDataUrl] = useState("");
   const [imageName, setImageName] = useState("");
-  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [isSignedIn, setIsSignedIn] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
@@ -130,14 +130,14 @@ export default function Home() {
 
     supabase.auth.getUser().then(({ data }) => {
       if (!isMounted) return;
-      setUserEmail(data.user?.email ?? null);
+      setIsSignedIn(Boolean(data.user?.id));
       setAuthChecked(true);
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUserEmail(session?.user?.email ?? null);
+      setIsSignedIn(Boolean(session?.user?.id));
       setAuthChecked(true);
     });
 
@@ -338,13 +338,13 @@ export default function Home() {
   async function handleSignOut() {
     const supabase = createBrowserSupabaseClient();
     await supabase.auth.signOut();
-    setUserEmail(null);
+    setIsSignedIn(false);
     setAuthChecked(true);
   }
 
   return (
     <main className="min-h-screen bg-[#f6f4ef] text-[#171717]">
-      <BrandHero authChecked={authChecked} userEmail={userEmail} onSignOut={handleSignOut} />
+      <BrandHero authChecked={authChecked} isSignedIn={isSignedIn} onSignOut={handleSignOut} />
 
       <section id="translator" className="border-y border-black/10 bg-[#f6f4ef]">
         <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
@@ -557,11 +557,11 @@ export default function Home() {
 
 function BrandHero({
   authChecked,
-  userEmail,
+  isSignedIn,
   onSignOut,
 }: {
   authChecked: boolean;
-  userEmail: string | null;
+  isSignedIn: boolean;
   onSignOut: () => void;
 }) {
   return (
@@ -586,9 +586,11 @@ function BrandHero({
           <a href="#footer" className="transition hover:text-[#7651e6]">FAQ</a>
         </nav>
         <div className="flex items-center gap-3">
-          {authChecked && userEmail ? (
+          {authChecked && isSignedIn ? (
             <>
-              <span className="hidden max-w-40 truncate text-sm font-bold text-black/55 sm:inline">{userEmail}</span>
+              <a href="#translator" className="hidden text-sm font-bold text-black/70 transition hover:text-[#7651e6] sm:inline">
+                계정
+              </a>
               <button
                 type="button"
                 onClick={onSignOut}
@@ -602,12 +604,14 @@ function BrandHero({
               로그인
             </Link>
           )}
-          <Link
-            href="/signup?next=%2F%23translator"
-            className="inline-flex h-12 items-center justify-center rounded-[14px] bg-gradient-to-r from-[#7651e6] to-[#8f63ff] px-5 text-sm font-black text-white shadow-[0_12px_30px_rgba(118,81,230,0.28)] transition hover:scale-[1.01]"
-          >
-            무료로 시작하기
-          </Link>
+          {authChecked && isSignedIn ? null : (
+            <Link
+              href="/signup?next=%2F%23translator"
+              className="inline-flex h-12 items-center justify-center rounded-[14px] bg-gradient-to-r from-[#7651e6] to-[#8f63ff] px-5 text-sm font-black text-white shadow-[0_12px_30px_rgba(118,81,230,0.28)] transition hover:scale-[1.01]"
+            >
+              무료로 시작하기
+            </Link>
+          )}
         </div>
       </header>
 
